@@ -19,8 +19,6 @@ namespace WpfCameraView
         public CameraCV()
         {
             cameraCapture = new Capture();
-            //cameraCapture.Start();
-            //cameraCapture
         }
 
         ~CameraCV()

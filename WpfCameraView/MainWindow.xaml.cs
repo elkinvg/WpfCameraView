@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 //using System.Timers;
 using System.Threading;
@@ -10,46 +11,79 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using DragEventArgs = System.Windows.DragEventArgs;
+using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 
 namespace WpfCameraView
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+
+
+    //public interface IMainWindow
+    //{
+
+    //}
+    public partial class MainWindow : Window//, IMainWindow
     {
         CameraCV CameraDevice = new CameraCV();
-        private DispatcherTimer timer;
+        private DispatcherTimer _timer;
         private System.UInt16 durationInterval;
         private ushort frameinsec;
 
+
         public MainWindow()
         {
-
-            timer = new DispatcherTimer();
-            timer.Tick += new EventHandler(UpgradeImageWindow);
-
-            FrameInSecond = 25;
-            timer.Interval = new TimeSpan(0, 0, 0, 0, milliseconds: durationInterval);
-            timer.Start();
-
             InitializeComponent();
+            InitBegin();
+            //ViewWinDS.mouse
         }
 
-        public ushort FrameInSecond 
+        private void InitBegin()
         {
-            set
-            {
-                frameinsec = value;
-                durationInterval = (ushort) (1000/frameinsec);
-            }
-            get { return frameinsec; }
+            _timer = new DispatcherTimer();
+            _timer.Tick += new EventHandler(UpgradeImageWindow);
+
+            FrameInSecond = 25;
+            _timer.Interval = new TimeSpan(0, 0, 0, 0, milliseconds: durationInterval);
+            _timer.Start();
+
+            ViewWinDS.Drop += ViewWinDsOnDrop;
+            ViewWinDS.DragEnter += ViewWinDsOnDragEnter;
+            ViewWinDS.DragLeave += ViewWinDsOnDragLeave;
+            ViewWinDS.DragOver += ViewWinDsOnDragOver;
+            ViewWinDS.Stretch = Stretch.Uniform;
+        }
+
+
+        #region event handler
+
+        private void ViewWinDsOnDragOver(object sender, DragEventArgs dragEventArgs)
+        {
+            TempTextBox.Text += " dragov ";
+        }
+
+        private void ViewWinDsOnDragLeave(object sender, DragEventArgs dragEventArgs)
+        {
+            TempTextBox.Text += " dragle ";
+        }
+
+        private void ViewWinDsOnDragEnter(object sender, DragEventArgs dragEventArgs)
+        {
+            TempTextBox.Text += " dragen ";
+        }
+
+        private void ViewWinDsOnDrop(object sender, DragEventArgs dragEventArgs)
+        {
+            TempTextBox.Text += " drop ";
         }
 
         private void btnTestPhoto_Click(object sender, RoutedEventArgs e)
@@ -72,6 +106,35 @@ namespace WpfCameraView
 
             ViewWinDS.Source = bi;
         }
+
+        private void ViewWinDS_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (ViewWinDS.IsMouseOver && (Keyboard.IsKeyDown(key: Key.LeftCtrl) || Keyboard.IsKeyDown(key: Key.RightCtrl)))
+            {
+                if (e.Delta > 0) TempTextBox.Text += " up ";
+                else TempTextBox.Text += " down ";
+            }
+            if ((Mouse.LeftButton == MouseButtonState.Pressed) && ViewWinDS.IsMouseOver )
+            {
+                if (e.Delta > 0) TempTextBox.Text += " вверх ";
+                else TempTextBox.Text += " вниз ";
+            }
+        }
+        #endregion
+
+        public ushort FrameInSecond
+        {
+            set
+            {
+                frameinsec = value;
+                durationInterval = (ushort)(1000 / frameinsec);
+            }
+            get { return frameinsec; }
+        }
+
+
+
+
 
     }
 }
