@@ -21,6 +21,7 @@ using System.Windows.Threading;
 using DragEventArgs = System.Windows.DragEventArgs;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 
+
 namespace WpfCameraView
 {
     /// <summary>
@@ -39,6 +40,7 @@ namespace WpfCameraView
         private System.UInt16 durationInterval;
         private ushort frameinsec;
 
+        
 
         public MainWindow()
         {
@@ -62,6 +64,7 @@ namespace WpfCameraView
             ViewWinDS.DragOver += ViewWinDsOnDragOver;
             ViewWinDS.Stretch = Stretch.Uniform;
         }
+
 
 
         #region event handler
@@ -132,9 +135,34 @@ namespace WpfCameraView
             get { return frameinsec; }
         }
 
+        //private void MenuItem_Click(object sender, RoutedEventArgs e)
+        //{
+        //    _timer.Stop();
+        //}
+
+        private void MenuItem_Click_1(object sender, RoutedEventArgs e)
+        {
+            App.Current.MainWindow.Close();
+        }
+
+        
 
 
-
-
+        private void DoOpenCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            ImageDocuments imageDocument = new ImageDocuments();
+            if (imageDocument.Open())
+            {
+                _timer.Stop();
+                BitmapImage bmImageScreen = new BitmapImage();
+                bmImageScreen.BeginInit();
+                bmImageScreen.UriSource = new Uri(imageDocument
+                    .PhysicalLocation, UriKind.Relative);
+                bmImageScreen.CacheOption = BitmapCacheOption.OnLoad;
+                bmImageScreen.EndInit();
+                ViewWinDS.Source = bmImageScreen;
+            }
+            
+        }
     }
 }

@@ -1,29 +1,53 @@
 ﻿<Window x:Class="WpfCameraView.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="598.65" Width="948.2">
+        Title="MainWindow" Height="601.4" Width="1293.2">
+    
+    <Window.CommandBindings>
+        <CommandBinding x:Uid="cmd:CommandBinding_3" Command="Open" Executed="DoOpenCommand" />
+    </Window.CommandBindings>
+
+
+
     <Grid x:Name="GridImg">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="7*"/>
-            <ColumnDefinition Width="100*"/>
-            <ColumnDefinition Width="206"/>
+            <ColumnDefinition Width="14*"/>
+            <ColumnDefinition Width="169*"/>
+            <ColumnDefinition Width="372"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="23*"/>
-            <RowDefinition Height="137*"/>
-            <RowDefinition Height="139*"/>
-            <RowDefinition Height="22*"/>
+            <RowDefinition Height="20*"/>
+            <RowDefinition Height="263*"/>
+            <RowDefinition Height="246*"/>
+            <RowDefinition Height="39*"/>
         </Grid.RowDefinitions>
-        <Border BorderBrush="Blue" BorderThickness="1" Grid.Column="1"  Grid.Row="1" Grid.RowSpan="2">
+        <Border BorderBrush="Blue" BorderThickness="1" Grid.Column="1"  Grid.Row="1" Grid.RowSpan="3" Margin="0.4,0,8.4,0">
             <Image x:Name="ViewWinDS"  MouseWheel="ViewWinDS_MouseWheel">
                 <Image.LayoutTransform >
                     <ScaleTransform x:Name="Scale" />
                 </Image.LayoutTransform>
             </Image>
         </Border>
-        <Button x:Name="btnTestPhoto" Content="Take Photo" Grid.Column="2" HorizontalAlignment="Left" Margin="24.6,129.8,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75" Click="btnTestPhoto_Click"/>
-        <TextBox x:Name="TempTextBox" Grid.Column="2" HorizontalAlignment="Left" Height="239" Margin="24.6,9.6,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="145" Grid.RowSpan="2" IsReadOnly="True"/>
-        <StatusBar x:Name="StatusBarMW" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" Height="29" Margin="0,0,-0.4,-0.2" VerticalAlignment="Bottom"  />
+        <Button x:Name="btnTestPhoto" Content="Take Photo" Grid.Column="2" HorizontalAlignment="Left" Margin="16.6,130.2,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75" Click="btnTestPhoto_Click" Height="19"/>
+        <TextBox x:Name="TempTextBox" Grid.Column="2" HorizontalAlignment="Left" Height="239" Margin="16.6,9,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="145" IsReadOnly="True"/>
+        <StatusBar x:Name="StatusBarMW" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" Height="29" Margin="0,0,-0.6,0" VerticalAlignment="Bottom"  />
+        <Menu x:Name="MainMenu" Grid.ColumnSpan="3" Margin="0,0,-0.6,1">
+            <MenuItem Header="File">
+                <MenuItem x:Name="OpenImageFile" Command="Open">
+                    <MenuItem.Header>
+                        _Open image File ...
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem Header="Open Project" >
+                    <MenuItem Header="WinForms"></MenuItem>
+                    <MenuItem Header="WPF" ></MenuItem>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Exit" Click="MenuItem_Click_1" ></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Edit" ></MenuItem>
+            <MenuItem Header="View" ></MenuItem>
+        </Menu>
 
     </Grid>
 </Window>

@@ -97,6 +97,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CameraCV.cs" />
+    <Compile Include="ImageDocuments.cs" />
     <Compile Include="ImageProcessCV.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
