@@ -52,7 +52,6 @@ namespace WpfCameraView
             frameImage.Save("ddd.jpg");
             Bitmap asBitmap = frameImage.ToBitmap(frameImage.Width, frameImage.Height);
             //cameraCapture.Pause();
-
             return asBitmap;
             //asBitmap.Save("ddd2.jpg");
 

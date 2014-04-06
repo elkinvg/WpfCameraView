@@ -36,11 +36,6 @@ namespace WpfCameraView
     public partial class MainWindow : Window//, IMainWindow
     {
         CameraCV CameraDevice = new CameraCV();
-        private DispatcherTimer _timer;
-        private System.UInt16 durationInterval;
-        private ushort frameinsec;
-
-        
 
         public MainWindow()
         {
@@ -48,6 +43,38 @@ namespace WpfCameraView
             InitBegin();
             //ViewWinDS.mouse
         }
+
+        #region TESTREGION
+
+        //private void MenuItem_Click(object sender, RoutedEventArgs e)
+        //{
+        //    _timer.Stop();
+        //}
+
+        private void btnTestPhoto_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
+
+        #endregion
+
+        #region public Properties
+
+        public ushort FrameInSecond
+        {
+            set
+            {
+                frameinsec = value;
+                durationInterval = (ushort)(1000 / frameinsec);
+            }
+            get { return frameinsec; }
+        }
+
+        #endregion
+
+        #region private Methods
+
+        #region Methods
 
         private void InitBegin()
         {
@@ -63,9 +90,10 @@ namespace WpfCameraView
             ViewWinDS.DragLeave += ViewWinDsOnDragLeave;
             ViewWinDS.DragOver += ViewWinDsOnDragOver;
             ViewWinDS.Stretch = Stretch.Uniform;
+            _isImageDocumentInit = false;
         }
 
-
+        #endregion
 
         #region event handler
 
@@ -89,9 +117,6 @@ namespace WpfCameraView
             TempTextBox.Text += " drop ";
         }
 
-        private void btnTestPhoto_Click(object sender, RoutedEventArgs e)
-        {
-        }
 
         private void UpgradeImageWindow(object sender, EventArgs e)
         {
@@ -117,52 +142,74 @@ namespace WpfCameraView
                 if (e.Delta > 0) TempTextBox.Text += " up ";
                 else TempTextBox.Text += " down ";
             }
-            if ((Mouse.LeftButton == MouseButtonState.Pressed) && ViewWinDS.IsMouseOver )
+            if ((Mouse.LeftButton == MouseButtonState.Pressed) && ViewWinDS.IsMouseOver)
             {
                 if (e.Delta > 0) TempTextBox.Text += " вверх ";
                 else TempTextBox.Text += " вниз ";
             }
         }
-        #endregion
 
-        public ushort FrameInSecond
+        private void DoOpenCommand(object sender, ExecutedRoutedEventArgs e)
         {
-            set
+            if (!_isImageDocumentInit)
             {
-                frameinsec = value;
-                durationInterval = (ushort)(1000 / frameinsec);
+                imageDocument = new ImageDocuments();
+                _isImageDocumentInit = true;
             }
-            get { return frameinsec; }
+
+            if (imageDocument.Open())
+            {
+                if (imageDocument.LoadedBitmapImage != null)
+                {
+                    if (_timer.IsEnabled) _timer.Stop();
+                    ViewWinDS.Source = imageDocument.LoadedBitmapImage;
+
+                    TempTextBox.Text += "Loaded Image" + imageDocument.OpenImFormat;
+                }
+                else
+                {
+                    if (!_timer.IsEnabled) _timer.Start();
+                    TempTextBox.Text += "It isn't Image ";
+                }
+            }
         }
 
-        //private void MenuItem_Click(object sender, RoutedEventArgs e)
-        //{
-        //    _timer.Stop();
-        //}
+        private void DoSaveCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (!_isImageDocumentInit)
+            {
+                imageDocument = new ImageDocuments();
+                _isImageDocumentInit = true;
+            }
+
+            if (imageDocument.Save())
+            {
+                if (imageDocument.LoadedBitmapImage != null)
+                {
+                    
+                    TempTextBox.Text += "Save Image";
+                }
+            }
+        }
 
         private void MenuItem_Click_1(object sender, RoutedEventArgs e)
         {
             App.Current.MainWindow.Close();
         }
 
-        
+        #endregion
 
+        #endregion
 
-        private void DoOpenCommand(object sender, ExecutedRoutedEventArgs e)
-        {
-            ImageDocuments imageDocument = new ImageDocuments();
-            if (imageDocument.Open())
-            {
-                _timer.Stop();
-                BitmapImage bmImageScreen = new BitmapImage();
-                bmImageScreen.BeginInit();
-                bmImageScreen.UriSource = new Uri(imageDocument
-                    .PhysicalLocation, UriKind.Relative);
-                bmImageScreen.CacheOption = BitmapCacheOption.OnLoad;
-                bmImageScreen.EndInit();
-                ViewWinDS.Source = bmImageScreen;
-            }
-            
-        }
+        #region private fields
+
+        private DispatcherTimer _timer;
+        private System.UInt16 durationInterval;
+        private ushort frameinsec;
+        private ImageDocuments imageDocument;
+        private bool _isImageDocumentInit;
+
+        #endregion
+
     }
 }
