@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Windows;
 using System.Windows.Media;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -12,46 +13,81 @@ namespace WpfCameraView
 {
     class CameraCV
     {
-        private readonly Capture cameraCapture;
-        
-        private Image<Bgr, Byte> frameImage;
+        private Capture _cameraCapture;
+        private bool _isCameraExist;
+
+
+        private Image<Bgr, Byte> _frameImage;
 
         public CameraCV()
         {
-            cameraCapture = new Capture();
+            CheckCamera();
+        }
+
+        public bool IsCameraExist
+        {
+            get { return _isCameraExist; }
         }
 
         ~CameraCV()
         {
-            //cameraCapture.Stop();
+            //_cameraCapture.Stop();
         }
 
-        private void GetVideo(object sender, EventArgs e)
+        public bool CheckCamera()
         {
-            //frameImage = cameraCapture.QueryFrame();
-            //frameImage.Save("ddd.jpg");
+            if (_cameraCapture != null) _cameraCapture.Dispose();
+            try
+            {
+                //Set up capture device
+                _cameraCapture = new Capture();
+                //_cameraCapture.ImageGrabbed += checkCamera;
+                _frameImage = _cameraCapture.QueryFrame();
+                _isCameraExist = _frameImage != null;
+
+            }
+            catch (NullReferenceException excpt)
+            {
+                MessageBox.Show(excpt.Message);
+                _isCameraExist = false;
+
+            }
+            return _isCameraExist;
         }
+
+        //private void checkC
 
         public Bitmap GetFrame()
         {
-            frameImage = cameraCapture.QueryFrame();
-            return frameImage.ToBitmap();
+            try
+            {
+                _frameImage = _cameraCapture.QueryFrame();
+                return _frameImage.ToBitmap();
+            }
+                catch (NullReferenceException excpt)
+            {
+                MessageBox.Show(excpt.Message);
+                if(_isCameraExist) _isCameraExist = false;
+                return null;
+            }
         }
 
         public void SaveFrameAs(System.String filename)
         {
-            frameImage = cameraCapture.QueryFrame();
-            frameImage.Save(filename);
+            _frameImage = _cameraCapture.QueryFrame();
+            _frameImage.Save(filename);
+            _cameraCapture.Stop();
+
         }
         //private void 
 
         public Bitmap sobb()
         {
-            //cameraCapture.Start();
-            frameImage = cameraCapture.QueryFrame();
-            frameImage.Save("ddd.jpg");
-            Bitmap asBitmap = frameImage.ToBitmap(frameImage.Width, frameImage.Height);
-            //cameraCapture.Pause();
+            //_cameraCapture.Start();
+            _frameImage = _cameraCapture.QueryFrame();
+            _frameImage.Save("ddd.jpg");
+            Bitmap asBitmap = _frameImage.ToBitmap(_frameImage.Width, _frameImage.Height);
+            //_cameraCapture.Pause();
             return asBitmap;
             //asBitmap.Save("ddd2.jpg");
 

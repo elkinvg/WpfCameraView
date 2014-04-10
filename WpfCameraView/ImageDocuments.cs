@@ -17,10 +17,6 @@ namespace WpfCameraView
         #region TESTREGION
         #endregion
 
-
-        
-
-
         #region public Properties
 
         public string PhysicalLocation
@@ -115,7 +111,7 @@ namespace WpfCameraView
 
         #region private Methods
 
-        private string GetImageFormat(Stream stream)
+        private static string GetImageFormat(Stream stream)
         {
             var bmp = Encoding.ASCII.GetBytes("BM");     // BMP
             var gif = Encoding.ASCII.GetBytes("GIF");    // GIF

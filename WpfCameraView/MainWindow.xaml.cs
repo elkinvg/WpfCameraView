@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+//using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -33,18 +34,27 @@ namespace WpfCameraView
     //{
 
     //}
+
+
     public partial class MainWindow : Window//, IMainWindow
     {
         CameraCV CameraDevice = new CameraCV();
-
+        
         public MainWindow()
         {
             InitializeComponent();
             InitBegin();
             //ViewWinDS.mouse
+
+            InitializeScaleTransform();
+            //InitializeRotateTransform();
+            InitializeTransformGroup();
         }
 
         #region TESTREGION
+        private ScaleTransform scaleTransform = new ScaleTransform();
+        //private RotateTransform rotateTransform = new RotateTransform();
+
 
         //private void MenuItem_Click(object sender, RoutedEventArgs e)
         //{
@@ -53,6 +63,35 @@ namespace WpfCameraView
 
         private void btnTestPhoto_Click(object sender, RoutedEventArgs e)
         {
+            CameraDevice.SaveFrameAs("fh.jpg");
+            CameraDevice.SaveFrameAs("fh.png");
+            CameraDevice.SaveFrameAs("fh.bmp");
+        }
+
+
+        private void InitializeScaleTransform()
+        {
+            scaleTransform.ScaleX = 1.0;
+            scaleTransform.ScaleY = 1.0;
+
+            scaleTransform.CenterX = 50.0;
+            scaleTransform.CenterY = 50.0;
+        }
+
+        //private void InitializeRotateTransform()
+        //{
+        //    rotateTransform.Angle = 0.0;
+        //    rotateTransform.CenterX = 150.0;
+        //    rotateTransform.CenterY = 50.0;
+        //}
+
+        private void InitializeTransformGroup()
+        {
+            TransformGroup transformGroup = new TransformGroup();
+            //transformGroup.Children.Add(rotateTransform);
+            transformGroup.Children.Add(scaleTransform);
+            //myEllipse.RenderTransform = transformGroup;
+            ViewWinDS.RenderTransform = transformGroup;
         }
 
 
@@ -64,10 +103,10 @@ namespace WpfCameraView
         {
             set
             {
-                frameinsec = value;
-                durationInterval = (ushort)(1000 / frameinsec);
+                _frameinsec = value;
+                _durationInterval = (ushort)(1000 / _frameinsec);
             }
-            get { return frameinsec; }
+            get { return _frameinsec; }
         }
 
         #endregion
@@ -79,92 +118,122 @@ namespace WpfCameraView
         private void InitBegin()
         {
             _timer = new DispatcherTimer();
-            _timer.Tick += new EventHandler(UpgradeImageWindow);
+            _timer.Tick += UpgradeImageWindow;
 
             FrameInSecond = 25;
-            _timer.Interval = new TimeSpan(0, 0, 0, 0, milliseconds: durationInterval);
-            _timer.Start();
+            _timer.Interval = new TimeSpan(0, 0, 0, 0, milliseconds: _durationInterval);
 
-            ViewWinDS.Drop += ViewWinDsOnDrop;
-            ViewWinDS.DragEnter += ViewWinDsOnDragEnter;
-            ViewWinDS.DragLeave += ViewWinDsOnDragLeave;
-            ViewWinDS.DragOver += ViewWinDsOnDragOver;
+            if (!CameraDevice.IsCameraExist) MenuItemVideoCheck.IsEnabled = false;
+            else
+            {
+                MenuItemVideoCheck.IsChecked = true;
+                CheckCameraItem.IsEnabled = false;
+            }
+
             ViewWinDS.Stretch = Stretch.Uniform;
             _isImageDocumentInit = false;
+            SaveFile.IsEnabled = false;
+
         }
 
         #endregion
 
         #region event handler
 
-        private void ViewWinDsOnDragOver(object sender, DragEventArgs dragEventArgs)
+        private void MenuItemVideoCheck_Checked(object sender, RoutedEventArgs e)
         {
-            TempTextBox.Text += " dragov ";
+            if (MenuItemVideoCheck.IsChecked)
+            {
+                _timer.Start();
+            }
         }
 
-        private void ViewWinDsOnDragLeave(object sender, DragEventArgs dragEventArgs)
+        private void MenuItemVideoCheck_Unchecked(object sender, RoutedEventArgs e)
         {
-            TempTextBox.Text += " dragle ";
+            if (!MenuItemVideoCheck.IsChecked)
+            {
+                _timer.Stop();
+            }
         }
 
-        private void ViewWinDsOnDragEnter(object sender, DragEventArgs dragEventArgs)
+        private void CheckCameraItem_OnClick(object sender, RoutedEventArgs e)
         {
-            TempTextBox.Text += " dragen ";
+            if (CameraDevice.CheckCamera())
+            {
+                MenuItemVideoCheck.IsEnabled = true;
+                MenuItemVideoCheck.IsChecked = true;
+                CheckCameraItem.IsEnabled = false;
+            }
         }
-
-        private void ViewWinDsOnDrop(object sender, DragEventArgs dragEventArgs)
-        {
-            TempTextBox.Text += " drop ";
-        }
-
 
         private void UpgradeImageWindow(object sender, EventArgs e)
         {
-            Bitmap bmp = CameraDevice.GetFrame();
+            using (var ms = new MemoryStream())
+            {
+                Bitmap bmp = CameraDevice.GetFrame();
+                if (bmp == null)
+                {
+                    MenuItemVideoCheck.IsEnabled = false;
+                    MenuItemVideoCheck.IsChecked = false;
+                    CheckCameraItem.IsEnabled = true;
+                }
 
-            BitmapImage bi = new BitmapImage();
-            MemoryStream ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                BitmapImage bi = new BitmapImage();
+                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
 
-            bi.BeginInit();
-            ms.Seek(0, SeekOrigin.Begin);
-            bi.CacheOption = BitmapCacheOption.OnLoad;
-            bi.StreamSource = ms;
-            bi.EndInit();
+                bi.BeginInit();
+                ms.Seek(0, SeekOrigin.Begin);
+                bi.CacheOption = BitmapCacheOption.OnLoad;
+                bi.StreamSource = ms;
+                bi.EndInit();
 
-            ViewWinDS.Source = bi;
+                ViewWinDS.Source = bi;
+            }
         }
 
         private void ViewWinDS_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (ViewWinDS.IsMouseOver && (Keyboard.IsKeyDown(key: Key.LeftCtrl) || Keyboard.IsKeyDown(key: Key.RightCtrl)))
             {
-                if (e.Delta > 0) TempTextBox.Text += " up ";
-                else TempTextBox.Text += " down ";
+                if (e.Delta > 0)
+                {
+                    TempTextBox.Text += " up ";
+                    ViewWinDS.Stretch = Stretch.None;
+                    //scaleTransform.ScaleX *= .97;
+                    //scaleTransform.ScaleY *= .97;
+                }
+                else
+                {
+                    TempTextBox.Text += " down ";
+                    ViewWinDS.Stretch = Stretch.Uniform;
+                }
             }
             if ((Mouse.LeftButton == MouseButtonState.Pressed) && ViewWinDS.IsMouseOver)
             {
                 if (e.Delta > 0) TempTextBox.Text += " вверх ";
                 else TempTextBox.Text += " вниз ";
             }
+
         }
 
         private void DoOpenCommand(object sender, ExecutedRoutedEventArgs e)
         {
             if (!_isImageDocumentInit)
             {
-                imageDocument = new ImageDocuments();
+                _imageDocument = new ImageDocuments();
                 _isImageDocumentInit = true;
             }
 
-            if (imageDocument.Open())
+            if (_imageDocument.Open())
             {
-                if (imageDocument.LoadedBitmapImage != null)
+                if (_imageDocument.LoadedBitmapImage != null)
                 {
                     if (_timer.IsEnabled) _timer.Stop();
-                    ViewWinDS.Source = imageDocument.LoadedBitmapImage;
+                    ViewWinDS.Source = _imageDocument.LoadedBitmapImage;
 
-                    TempTextBox.Text += "Loaded Image" + imageDocument.OpenImFormat;
+                    TempTextBox.Text += "Loaded Image" + _imageDocument.OpenImFormat;
+                    if (!SaveFile.IsEnabled) SaveFile.IsEnabled = true;
+                    
                 }
                 else
                 {
@@ -178,15 +247,15 @@ namespace WpfCameraView
         {
             if (!_isImageDocumentInit)
             {
-                imageDocument = new ImageDocuments();
+                _imageDocument = new ImageDocuments();
                 _isImageDocumentInit = true;
             }
 
-            if (imageDocument.Save())
+            if (_imageDocument.Save())
             {
-                if (imageDocument.LoadedBitmapImage != null)
+                if (_imageDocument.LoadedBitmapImage != null)
                 {
-                    
+
                     TempTextBox.Text += "Save Image";
                 }
             }
@@ -204,12 +273,11 @@ namespace WpfCameraView
         #region private fields
 
         private DispatcherTimer _timer;
-        private System.UInt16 durationInterval;
-        private ushort frameinsec;
-        private ImageDocuments imageDocument;
+        private System.UInt16 _durationInterval;
+        private ushort _frameinsec;
+        private ImageDocuments _imageDocument;
         private bool _isImageDocumentInit;
 
         #endregion
-
     }
 }
